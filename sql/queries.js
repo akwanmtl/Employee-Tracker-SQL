@@ -11,11 +11,11 @@ class Queries {
             ON department.id = role.department_id `;
 
         this.getAllDepartments = `
-        SELECT department.name FROM department;
+        SELECT * FROM department;
         `;
 
         this.getAllRoles = `
-        SELECT role.title FROM role;
+        SELECT * FROM role;
         `;
 
         this.getAllManagers = `
@@ -25,8 +25,18 @@ class Queries {
         ON m.id = e.manager_id;
         `;
 
-        this.byDepartment = `WHERE department.name = ?;`
-        this.byManager = `WHERE m.id = ?;`
+        this.byDepartment = `WHERE department.name = ? `;
+        this.byManager = `WHERE m.id = ? `;
+        this.orderByID = `ORDER BY e.id;`;
+
+        this.addEmployee = `
+        INSERT INTO employee SET ?`;
+
+        this.removeEmployee = `DELETE FROM employee WHERE id = ?`
+
+        this.updateManager = `UPDATE employee SET ? WHERE manager_id = ?`
+
+
     }
 }
 
