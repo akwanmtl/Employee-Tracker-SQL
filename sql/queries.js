@@ -34,8 +34,25 @@ class Queries {
 
         this.removeEmployee = `DELETE FROM employee WHERE id = ?`
 
-        this.updateManager = `UPDATE employee SET ? WHERE manager_id = ?`
+        this.updateManager = `UPDATE employee SET ? WHERE ?`
+        
+        this.updateEmployee = `UPDATE employee SET role_id = ? WHERE id = ?`
 
+        this.addRole = `
+        INSERT INTO role SET ?`;
+        
+        this.addDepartment = `
+        INSERT INTO department SET ?`;
+
+        this.viewBudget = `
+        SELECT SUM(role.salary) as budget
+        FROM employee
+        INNER JOIN role 
+            ON role.id = employee.role_id
+        INNER JOIN department
+            ON department.id = role.department_id
+        WHERE department.name = ?
+        `;
 
     }
 }

@@ -38,8 +38,8 @@ const chooseOption = () => {
             type: "list",
             message: "What would you like to do?",
             choices: ["View All Employees","View All Employees By Department", "View All Employees By Manager",
-            "Add Employee", "Remove Employee","Update Employee Role", "View All Roles", "Add Role", "Remove Role",
-            "View All Departments", "Add Department","Remove Role","Exit"],
+            "Add Employee", "Remove Employee","Update Employee's Role", "Update Employee's Manager", "View Budget of Department",
+            "View All Roles", "Add Role", "Remove Role", "View All Departments", "Add Department","Remove Role","Exit"],
             name: "choice"
         }
     ];
@@ -60,7 +60,14 @@ const chooseOption = () => {
             case "Remove Employee":
                 removeEmployee();
                 break;
-            case "Update Employee Role":
+            case "Update Employee's Role":
+                updateEmployeeRole();
+                break;
+            case "Update Employee's Manager":
+                updateEmployeeManager();
+                break;
+            case "View Budget of Department":
+                budgetDepartment();
                 break;
             case "View All Roles":
                 viewAllRoles();
@@ -69,8 +76,10 @@ const chooseOption = () => {
                 viewAllDepartments();
                 break;
             case "Add Role":
+                addRole();
                 break;
             case "Add Department":
+                addDepartment();
                 break;
             case "Remove Role":
                 break;
@@ -128,7 +137,7 @@ const viewAllEmployeesDepartment = () => {
         let question = [
             {
                 type: "list",
-                message: "From which department would you like to see the list of employees?",
+                message: "Please select the department:",
                 choices: departments,
                 name: "department"
             }
@@ -155,7 +164,7 @@ const viewAllEmployeesManager = () => {
         let question = [
             {
                 type: "list",
-                message: "Under which manager would you like to see the list of employees?",
+                message: "Please select the manager:",
                 choices: Object.keys(managersObj),
                 name: "manager"
             }
@@ -253,7 +262,7 @@ const removeEmployee = () => {
         let question = [
             {
                 type: "list",
-                message: "Whic employee would you like to remove?",
+                message: "Which employee would you like to remove?",
                 choices: Object.keys(employeeObj),
                 name: "employee"
             }
@@ -263,7 +272,12 @@ const removeEmployee = () => {
 
             connection.query(query.removeEmployee,[employeeObj[response.employee]],(err,res) => {
                 if(err) throw err;
-                connection.query(query.updateManager,[{manager_id: null}, employeeObj[response.employee]],(err,res) => {
+                connection.query(query.updateManager,
+                    [
+                        {manager_id: null}, 
+                        {manager_id: employeeObj[response.employee]}
+                    ],
+                    (err,res) => {
                     if(err) throw err;
                     
                     console.log(`Successfully removed ${response.employee}`);
@@ -273,4 +287,226 @@ const removeEmployee = () => {
         }
         inquirer.prompt(question).then(answer);
     });
+}
+
+const updateEmployeeRole = () => {
+    connection.query(query.getAllEmployees+query.orderByID, (err,res) => {
+        if(err) throw err;
+        let employeeObj = {};
+        
+        res.forEach(element => {
+            let name = [element.first_name, element.last_name].join(" ");
+            employeeObj[name] = element.id;
+        });
+
+        connection.query(query.getAllRoles, (err,res) => {
+            if(err) throw err;
+            let rolesObj = {};
+            
+            res.forEach(element => {
+                rolesObj[element.title] = element.id;
+            });
+
+            let question = [
+                {
+                    type: "list",
+                    message: "Which employee would you like to update their role?",
+                    choices: Object.keys(employeeObj),
+                    name: "employee"
+                },
+                {
+                    type: "list",
+                    message: "What is their new role?",
+                    choices: Object.keys(rolesObj),
+                    name: "role"
+                }
+            ];
+
+            let answer = (response) => {
+
+                connection.query(query.updateEmployee,[rolesObj[response.role], employeeObj[response.employee]],(err,res) => {
+                    if(err) throw err;
+                    console.log(`Successfully update ${response.employee}`);
+                    chooseOption();
+                });
+            }
+            inquirer.prompt(question).then(answer);
+        });
+    });
+}
+
+const updateEmployeeManager = () => {
+    connection.query(query.getAllEmployees+query.orderByID, (err,res) => {
+        if(err) throw err;
+        let employeeObj = {};
+        
+        res.forEach(element => {
+            let name = [element.first_name, element.last_name].join(" ");
+            employeeObj[name] = element.id;
+        });
+        let question = [
+            {
+                type: "list",
+                message: "Which employee would you like to update their manager?",
+                choices: Object.keys(employeeObj),
+                name: "employee"
+            }
+        ];
+
+        let answer = (response) => {
+            let id = employeeObj[response.employee];
+            let name = response.employee;
+            delete employeeObj[response.employee]
+
+            let question2 = [
+                {
+                    type: "list",
+                    message: "Who is their mananager?",
+                    choices: Object.keys(employeeObj),
+                    name: "manager"
+                }
+            ];
+
+            let answer2 = (response) =>{
+                connection.query(query.updateManager,
+                    [
+                        {manager_id: employeeObj[response.manager]},
+                        {id: id}
+                    ],
+                    (err,res) => {
+                    if(err) throw err;
+                    
+                    console.log(`Successfully updated ${name}'s manager.`);
+                    chooseOption();
+                });
+            }          
+            
+            inquirer.prompt(question2).then(answer2);  
+        }
+        inquirer.prompt(question).then(answer);
+        
+    });
+}
+
+const addRole = () => {
+    connection.query(query.getAllDepartments, (err,res) => {
+        if(err) throw err;
+        let departmentObj = {};
+        res.forEach(element => {
+            departmentObj[element.name] = element.id;
+        });
+
+        connection.query(query.getAllRoles, (err,res) => {
+            if(err) throw err;
+            let roles = res.map(element => element.title.toLowerCase());
+            let question = [
+                {
+                    type: "input",
+                    message: "What role would you like to add?",
+                    name: "role",
+                    validate: value =>{
+                        if(roles.includes(value.toLowerCase())) return "The role already exists. Please enter a new role.";
+                        else return true;
+                    }
+                },
+                {
+                    type: "input",
+                    message: "What is the salary for this role?",
+                    name: "salary",
+                    validate: value =>{
+                        if(isNaN(value)) return "Please enter a valid salary.";
+                        else return true;
+                    }
+                },
+                {
+                    type: "list",
+                    message: "Under which department does this role belong?",
+                    name: "department",
+                    choices : Object.keys(departmentObj)
+                }
+            ];
+            let answer = (response) =>{
+                connection.query(query.addRole,
+                    [
+                        {
+                            title: response.role,
+                            salary: response.salary,
+                            department_id: departmentObj[response.department]
+                        }
+                    ],
+                    (err,res)=>{
+                    if(err) throw err;
+                    console.log(`Added ${response.role} as a role.`);
+
+                    chooseOption();
+                });
+
+            }
+
+            inquirer.prompt(question).then(answer);
+
+        });
+    });
+}
+
+const addDepartment = () => {
+    connection.query(query.getAllDepartments, (err,res) => {
+        if(err) throw err;
+        let departments = res.map(element => element.name.toLowerCase());
+        let question = [
+            {
+                type: "input",
+                message: "What department would you like to add?",
+                name: "department",
+                validate: value =>{
+                    if(departments.includes(value.toLowerCase())) return "The department already exists. Please enter a new role.";
+                    else return true;
+                }
+            }
+        ];
+        let answer = (response) => {
+            connection.query(query.addDepartment,
+                [
+                    {
+                        name: response.department
+                    }
+                ],
+                (err,res)=>{
+                if(err) throw err;
+                console.log(`Added ${response.department} as a department.`);
+
+                chooseOption();
+            });
+        }
+        inquirer.prompt(question).then(answer);
+
+    });
+}
+
+const budgetDepartment = () => {
+
+    connection.query(query.getAllDepartments, (err,res) => {
+        if(err) throw err;
+        let departments = res.map(element => element.name);
+        let question = [
+            {
+                type: "list",
+                message: "Please select department:",
+                name: "department",
+                choices: departments
+            }
+        ];
+        let answer = (response) => {
+            connection.query(query.viewBudget,[response.department],(err,res)=>{
+                if(err) throw err;
+                
+                console.log(`The total budget of ${response.department} Department is ${res[0].budget}$.`);
+
+                chooseOption();
+            });
+        }
+        inquirer.prompt(question).then(answer);
+
+    });
+
 }
