@@ -7,7 +7,7 @@ INSERT INTO role (title,salary, department_id)
 VALUES ('Sales Lead',90000,1),('Sales Representative',70000,1),
 ('Lead Engineer',100000,2),('Software Engineer',90000,2),
 ('Accountant',60000,3),('Lawyer',150000,4),('Legal Team Lead',180000,4),
-('Lead Marketing Coordinator',70000,4),('Marketing Coordinator',50000,4)
+('Lead Marketing Coordinator',70000,4),('Marketing Coordinator',50000,4);
 
 INSERT INTO employee (first_name, last_name, role_id, manager_id)
 VALUES ('Angus','Adams',1,null),('Bob','Brown',2,null),('Catherine','Chan',3,null),

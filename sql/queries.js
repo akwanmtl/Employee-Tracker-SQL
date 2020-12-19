@@ -32,9 +32,9 @@ class Queries {
         this.addEmployee = `
         INSERT INTO employee SET ?`;
 
-        this.removeEmployee = `DELETE FROM employee WHERE id = ?`
+        this.removeEmployee = "DELETE FROM employee WHERE ?; ";
 
-        this.updateManager = `UPDATE employee SET ? WHERE ?`
+        this.updateManager = `UPDATE employee SET ? WHERE ?`;
         
         this.updateEmployee = `UPDATE employee SET role_id = ? WHERE id = ?`
 
@@ -52,7 +52,19 @@ class Queries {
         INNER JOIN department
             ON department.id = role.department_id
         WHERE department.name = ?
-        `;
+        ;`;
+
+        this.removeRole = "DELETE FROM role WHERE ?; ";
+
+        this.getRoleInDepartment = `
+        SELECT role.id
+        FROM role
+        INNER JOIN department
+            ON role.department_id = department.id
+        WHERE department.id = ?
+        ;`;
+        
+        this.removeDepartment = "DELETE FROM department WHERE ?; ";
 
     }
 }

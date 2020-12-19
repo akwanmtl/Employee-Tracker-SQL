@@ -39,7 +39,7 @@ const chooseOption = () => {
             message: "What would you like to do?",
             choices: ["View All Employees","View All Employees By Department", "View All Employees By Manager",
             "Add Employee", "Remove Employee","Update Employee's Role", "Update Employee's Manager", "View Budget of Department",
-            "View All Roles", "Add Role", "Remove Role", "View All Departments", "Add Department","Remove Role","Exit"],
+            "View All Roles", "Add Role", "Remove Role", "View All Departments", "Add Department","Remove Department","Exit"],
             name: "choice"
         }
     ];
@@ -82,8 +82,10 @@ const chooseOption = () => {
                 addDepartment();
                 break;
             case "Remove Role":
+                removeRole();
                 break;
             case "Remove Department":
+                removeDepartment();
                 break;
             case "Exit":
                 console.log("Thank you.");
@@ -91,9 +93,7 @@ const chooseOption = () => {
                 break;
         }
     }
-
     inquirer.prompt(question).then(answer);
-    
 }
 
 const viewAllEmployees = () => {
@@ -270,19 +270,11 @@ const removeEmployee = () => {
 
         let answer = (response) => {
 
-            connection.query(query.removeEmployee,[employeeObj[response.employee]],(err,res) => {
+            connection.query(query.removeEmployee,[{id: employeeObj[response.employee]}],(err,res) => {
                 if(err) throw err;
-                connection.query(query.updateManager,
-                    [
-                        {manager_id: null}, 
-                        {manager_id: employeeObj[response.employee]}
-                    ],
-                    (err,res) => {
-                    if(err) throw err;
-                    
-                    console.log(`Successfully removed ${response.employee}`);
-                    chooseOption();
-                });
+
+                console.log(`Successfully removed ${response.employee}`);
+                chooseOption();
             });
         }
         inquirer.prompt(question).then(answer);
@@ -442,9 +434,7 @@ const addRole = () => {
                 });
 
             }
-
             inquirer.prompt(question).then(answer);
-
         });
     });
 }
@@ -510,3 +500,89 @@ const budgetDepartment = () => {
     });
 
 }
+
+const removeRole = () => {
+    connection.query(query.getAllRoles, (err,res) => {
+        if(err) throw err;
+        let rolesObj = {};
+        res.forEach(element => {
+            rolesObj[element.title] = element.id;
+        });
+        let question = [
+            {
+                type: "list",
+                message: "Which role would you like to remove? This will remove all employees with that role.",
+                name: "role",
+                choices : Object.keys(rolesObj)
+            }
+        ];
+        let answer = (response) =>{
+            connection.query(query.removeEmployee, [{role_id: rolesObj[response.role]}],(err,res)=>{
+                if(err) throw err;
+                connection.query(query.removeRole,[{id: rolesObj[response.role]}],(err,res)=>{
+                    if(err) throw err;
+                    console.log(`Removed ${response.role} as a role.`);
+                    chooseOption();
+                });
+            });
+        }
+        inquirer.prompt(question).then(answer);
+    });
+}
+
+const removeDepartment = () => {
+    connection.query(query.getAllDepartments, (err,res) => {
+        if(err) throw err;
+        let departmentObj = {};
+        res.forEach(element => {
+            departmentObj[element.name] = element.id;
+        });
+        let question = [
+            {
+                type: "list",
+                message: "Which department would you like to remove? This will remove all employees with that department.",
+                name: "department",
+                choices : Object.keys(departmentObj)
+            }
+        ];
+        let answer = (response) =>{
+            connection.query(query.getRoleInDepartment, [departmentObj[response.department]],async (err,res) => {
+                if(err) throw err;
+                let role_ids = res.map(element => element.id);
+                
+                const promises = role_ids.map(async (role_id) =>{
+                    await removeOneRole(role_id);
+                    return new Promise((resolve, reject) => {resolve()})
+                });
+
+                Promise.all(promises).then(() => {
+
+                    connection.query(query.removeDepartment, [{name: response.department}],(err,res)=>{
+                        if(err) throw err;
+                        console.log(`Removed ${response.department} Department.`);
+                        chooseOption();
+                    });
+                })
+                
+            });
+
+        }
+        inquirer.prompt(question).then(answer);
+    });
+}
+
+const removeOneRole = (id) => {
+    return new Promise((resolve,reject) => {
+        connection.query(query.removeEmployee, [{role_id: id}],(err,res)=>{
+            if(err) throw err;
+            connection.query(query.removeRole, [{id: id}],(err,res)=>{
+                if(err) throw err;
+                
+                console.log("removed")
+                resolve();
+            });
+            
+        });
+    })
+}
+
