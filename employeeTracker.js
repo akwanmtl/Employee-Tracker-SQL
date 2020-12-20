@@ -1,10 +1,12 @@
+//Load required modules
 const mysql = require('mysql');
 const inquirer = require('inquirer');
 const cTable = require('console.table');
 const Queries = require('./sql/queries.js');
 
-const query = new Queries;
+const query = new Queries; // create new queries object
 
+//Create connection with the necessary information
 const connection = mysql.createConnection({
     host: 'localhost',
     port: 3306,
@@ -13,24 +15,49 @@ const connection = mysql.createConnection({
     database: 'employee_tracker_DB',
 });
 
+//Start the connection
 connection.connect((err) => {
     if (err) throw err;
     start();
-    // connection.end();
 });
 
+//Start the application with a message and then runs the chooseOption function
 const start = () => {
+//     console.log(`
+//     _____       ___  ___   _____   _       _____  __    __  _____   _____        _____   _____        ___   _____   _   _    _____   _____   
+//    | ____|     /   |/   | |  _  \\ | |     /  _  \\ \\ \\  / / | ____| | ____|      |_   _| |  _  \\      /   | /  ___| | | / /  | ____| |  _  \\  
+//    | |__      / /|   /| | | |_| | | |     | | | |  \\ \\/ /  | |__   | |__          | |   | |_| |     / /| | | |     | |/ /   | |__   | |_| |  
+//    |  __|    / / |__/ | | |  ___/ | |     | | | |   \\  /   |  __|  |  __|         | |   |  _  /    / / | | | |     | |\\ \\   |  __|  |  _  /  
+//    | |___   / /       | | | |     | |___  | |_| |   / /    | |___  | |___         | |   | | \\ \\   / /  | | | |___  | | \\ \\  | |___  | | \\ \\  
+//    |_____| /_/        |_| |_|     |_____| \\_____/  /_/     |_____| |_____|        |_|   |_|  \\_\\ /_/   |_| \\_____| |_|  \\_\\ |_____| |_|  \\_\\
+//    `);
+
     console.log(`
-    _____       ___  ___   _____   _       _____  __    __  _____   _____        _____   _____        ___   _____   _   _    _____   _____   
-   | ____|     /   |/   | |  _  \\ | |     /  _  \\ \\ \\  / / | ____| | ____|      |_   _| |  _  \\      /   | /  ___| | | / /  | ____| |  _  \\  
-   | |__      / /|   /| | | |_| | | |     | | | |  \\ \\/ /  | |__   | |__          | |   | |_| |     / /| | | |     | |/ /   | |__   | |_| |  
-   |  __|    / / |__/ | | |  ___/ | |     | | | |   \\  /   |  __|  |  __|         | |   |  _  /    / / | | | |     | |\\ \\   |  __|  |  _  /  
-   | |___   / /       | | | |     | |___  | |_| |   / /    | |___  | |___         | |   | | \\ \\   / /  | | | |___  | | \\ \\  | |___  | | \\ \\  
-   |_____| /_/        |_| |_|     |_____| \\_____/  /_/     |_____| |_____|        |_|   |_|  \\_\\ /_/   |_| \\_____| |_|  \\_\\ |_____| |_|  \\_\\
-   `);
-   chooseOption();
+    #######                                                         
+    #       #    # #####  #       ####  #   # ###### ######         
+    #       ##  ## #    # #      #    #  # #  #      #              
+    #####   # ## # #    # #      #    #   #   #####  #####          
+    #       #    # #####  #      #    #   #   #      #              
+    #       #    # #      #      #    #   #   #      #              
+    ####### #    # #      ######  ####    #   ###### ######         
+#     #                                                               
+##   ##   ##   #    #   ##    ####  ###### #    # ###### #    # ##### 
+# # # #  #  #  ##   #  #  #  #    # #      ##  ## #      ##   #   #   
+#  #  # #    # # #  # #    # #      #####  # ## # #####  # #  #   #   
+#     # ###### #  # # ###### #  ### #      #    # #      #  # #   #   
+#     # #    # #   ## #    # #    # #      #    # #      #   ##   #   
+#     # #    # #    # #    #  ####  ###### #    # ###### #    #   #   
+           #####                                                    
+          #     # #   #  ####  ##### ###### #    #                  
+          #        # #  #        #   #      ##  ##                  
+           #####    #    ####    #   #####  # ## #                  
+                #   #        #   #   #      #    #                  
+          #     #   #   #    #   #   #      #    #                  
+           #####    #    ####    #   ###### #    #                  `)
+    chooseOption();
 }
 
+//This function asks the user what they want to do with the application. After the user chooses an option, it will run the appropriate function
 const chooseOption = () => {
     
     let question = [
@@ -96,6 +123,7 @@ const chooseOption = () => {
     inquirer.prompt(question).then(answer);
 }
 
+//This function lists all the employees including their id, first_name, last-name, role, salary, department, manager
 const viewAllEmployees = () => {
 
     connection.query(query.getAllEmployees+query.orderByID, (err,res) => {
@@ -105,6 +133,7 @@ const viewAllEmployees = () => {
     });
 }
 
+//This function shows all departments
 const viewAllDepartments = () => {
 
     connection.query(query.getAllDepartments, (err,res) => {
@@ -117,6 +146,7 @@ const viewAllDepartments = () => {
     });
 }
 
+//This function shows all roles
 const viewAllRoles = () => {
 
     connection.query(query.getAllRoles, (err,res) => {
@@ -129,6 +159,7 @@ const viewAllRoles = () => {
     });
 }
 
+//This function lists all the employees on the chosen department including their id, first_name, last-name, role, salary, department, manager
 const viewAllEmployeesDepartment = () => {
 
     connection.query(query.getAllDepartments, (err,res) => {
@@ -153,6 +184,7 @@ const viewAllEmployeesDepartment = () => {
     })
 }
 
+//This function lists all the employees of the chosen manager including their id, first_name, last-name, role, salary, department, manager
 const viewAllEmployeesManager = () => {
 
     connection.query(query.getAllManagers, (err,res) => {
@@ -180,6 +212,7 @@ const viewAllEmployeesManager = () => {
     })
 }
 
+//This function adds a new employee
 const addEmployee = () => {
 
     connection.query(query.getAllRoles, (err,res) => {
@@ -226,7 +259,6 @@ const addEmployee = () => {
             ];
 
             let answer = (response) => {
-
                 connection.query(query.addEmployee, 
                 [
                     {
@@ -249,6 +281,7 @@ const addEmployee = () => {
     });
 }
 
+//This function removes an employee 
 const removeEmployee = () => {
     connection.query(query.getAllEmployees+query.orderByID, (err,res) => {
         if(err) throw err;
@@ -269,7 +302,6 @@ const removeEmployee = () => {
         ];
 
         let answer = (response) => {
-
             connection.query(query.removeEmployee,[{id: employeeObj[response.employee]}],(err,res) => {
                 if(err) throw err;
 
@@ -281,6 +313,7 @@ const removeEmployee = () => {
     });
 }
 
+//This function updates the role of an employee
 const updateEmployeeRole = () => {
     connection.query(query.getAllEmployees+query.orderByID, (err,res) => {
         if(err) throw err;
@@ -315,7 +348,6 @@ const updateEmployeeRole = () => {
             ];
 
             let answer = (response) => {
-
                 connection.query(query.updateEmployee,[rolesObj[response.role], employeeObj[response.employee]],(err,res) => {
                     if(err) throw err;
                     console.log(`Successfully update ${response.employee}`);
@@ -327,6 +359,7 @@ const updateEmployeeRole = () => {
     });
 }
 
+//This function updates the manager of an employee
 const updateEmployeeManager = () => {
     connection.query(query.getAllEmployees+query.orderByID, (err,res) => {
         if(err) throw err;
@@ -367,12 +400,10 @@ const updateEmployeeManager = () => {
                     ],
                     (err,res) => {
                     if(err) throw err;
-                    
                     console.log(`Successfully updated ${name}'s manager.`);
                     chooseOption();
                 });
-            }          
-            
+            }       
             inquirer.prompt(question2).then(answer2);  
         }
         inquirer.prompt(question).then(answer);
@@ -380,6 +411,7 @@ const updateEmployeeManager = () => {
     });
 }
 
+//This function adds a new role
 const addRole = () => {
     connection.query(query.getAllDepartments, (err,res) => {
         if(err) throw err;
@@ -432,13 +464,13 @@ const addRole = () => {
 
                     chooseOption();
                 });
-
             }
             inquirer.prompt(question).then(answer);
         });
     });
 }
 
+//This function adds a new department
 const addDepartment = () => {
     connection.query(query.getAllDepartments, (err,res) => {
         if(err) throw err;
@@ -473,6 +505,7 @@ const addDepartment = () => {
     });
 }
 
+//This function shows the budget of a chosen department
 const budgetDepartment = () => {
 
     connection.query(query.getAllDepartments, (err,res) => {
@@ -501,6 +534,7 @@ const budgetDepartment = () => {
 
 }
 
+//This function removes a role. All employees with that role will be removed as well.
 const removeRole = () => {
     connection.query(query.getAllRoles, (err,res) => {
         if(err) throw err;
@@ -530,6 +564,7 @@ const removeRole = () => {
     });
 }
 
+//This function removes a department. All roles and employees under that department will be removed as well.
 const removeDepartment = () => {
     connection.query(query.getAllDepartments, (err,res) => {
         if(err) throw err;
@@ -563,25 +598,21 @@ const removeDepartment = () => {
                         chooseOption();
                     });
                 })
-                
             });
-
         }
         inquirer.prompt(question).then(answer);
     });
 }
 
+//This function returns a promise - this is used when doing a for loop. 
 const removeOneRole = (id) => {
     return new Promise((resolve,reject) => {
         connection.query(query.removeEmployee, [{role_id: id}],(err,res)=>{
             if(err) throw err;
             connection.query(query.removeRole, [{id: id}],(err,res)=>{
                 if(err) throw err;
-                
-                console.log("removed")
                 resolve();
             });
-            
         });
     })
 }
