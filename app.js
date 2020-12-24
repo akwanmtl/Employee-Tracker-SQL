@@ -285,7 +285,9 @@ const addEmployee = () => {
 const removeEmployee = () => {
     connection.query(query.getAllEmployees+query.orderByID, (err,res) => {
         if(err) throw err;
-        let employeeObj = {};
+        let employeeObj = {
+            "Exit": 1
+        };
         
         res.forEach(element => {
             let name = [element.first_name, element.last_name].join(" ");
@@ -302,12 +304,15 @@ const removeEmployee = () => {
         ];
 
         let answer = (response) => {
-            connection.query(query.removeEmployee,[{id: employeeObj[response.employee]}],(err,res) => {
-                if(err) throw err;
-
-                console.log(`Successfully removed ${response.employee}`);
-                chooseOption();
-            });
+            if(response.employee === "Exit") chooseOption();
+            else{
+                connection.query(query.removeEmployee,[{id: employeeObj[response.employee]}],(err,res) => {
+                    if(err) throw err;
+    
+                    console.log(`Successfully removed ${response.employee}`);
+                    chooseOption();
+                });
+            }
         }
         inquirer.prompt(question).then(answer);
     });
@@ -382,7 +387,8 @@ const updateEmployeeManager = () => {
             let id = employeeObj[response.employee];
             let name = response.employee;
             delete employeeObj[response.employee]
-
+            employeeObj["None"] = null;
+            
             let question2 = [
                 {
                     type: "list",
@@ -538,7 +544,9 @@ const budgetDepartment = () => {
 const removeRole = () => {
     connection.query(query.getAllRoles, (err,res) => {
         if(err) throw err;
-        let rolesObj = {};
+        let rolesObj = {
+            "Exit":1
+        };
         res.forEach(element => {
             rolesObj[element.title] = element.id;
         });
@@ -551,14 +559,17 @@ const removeRole = () => {
             }
         ];
         let answer = (response) =>{
-            connection.query(query.removeEmployee, [{role_id: rolesObj[response.role]}],(err,res)=>{
-                if(err) throw err;
-                connection.query(query.removeRole,[{id: rolesObj[response.role]}],(err,res)=>{
+            if(response.role === "Exit") chooseOption();
+            else{
+                connection.query(query.removeEmployee, [{role_id: rolesObj[response.role]}],(err,res)=>{
                     if(err) throw err;
-                    console.log(`Removed ${response.role} as a role.`);
-                    chooseOption();
+                    connection.query(query.removeRole,[{id: rolesObj[response.role]}],(err,res)=>{
+                        if(err) throw err;
+                        console.log(`Removed ${response.role} as a role.`);
+                        chooseOption();
+                    });
                 });
-            });
+            }
         }
         inquirer.prompt(question).then(answer);
     });
@@ -568,7 +579,9 @@ const removeRole = () => {
 const removeDepartment = () => {
     connection.query(query.getAllDepartments, (err,res) => {
         if(err) throw err;
-        let departmentObj = {};
+        let departmentObj = {
+            "Exit":1
+        };
         res.forEach(element => {
             departmentObj[element.name] = element.id;
         });
@@ -581,24 +594,28 @@ const removeDepartment = () => {
             }
         ];
         let answer = (response) =>{
-            connection.query(query.getRoleInDepartment, [departmentObj[response.department]],async (err,res) => {
-                if(err) throw err;
-                let role_ids = res.map(element => element.id);
-                
-                const promises = role_ids.map(async (role_id) =>{
-                    await removeOneRole(role_id);
-                    return new Promise((resolve, reject) => {resolve()})
-                });
-
-                Promise.all(promises).then(() => {
-
-                    connection.query(query.removeDepartment, [{name: response.department}],(err,res)=>{
-                        if(err) throw err;
-                        console.log(`Removed ${response.department} Department.`);
-                        chooseOption();
+            
+            if(response.role === "Exit") chooseOption();
+            else{
+                connection.query(query.getRoleInDepartment, [departmentObj[response.department]],async (err,res) => {
+                    if(err) throw err;
+                    let role_ids = res.map(element => element.id);
+                    
+                    const promises = role_ids.map(async (role_id) =>{
+                        await removeOneRole(role_id);
+                        return new Promise((resolve, reject) => {resolve()})
                     });
-                })
-            });
+
+                    Promise.all(promises).then(() => {
+
+                        connection.query(query.removeDepartment, [{name: response.department}],(err,res)=>{
+                            if(err) throw err;
+                            console.log(`Removed ${response.department} Department.`);
+                            chooseOption();
+                        });
+                    })
+                });
+            }
         }
         inquirer.prompt(question).then(answer);
     });

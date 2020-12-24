@@ -43,7 +43,7 @@ The user can choose to do any of the following:
 
 
 Click on the GIF to see a narrated version of the demo.
-[![Video of Employee Tracker](assets/demo.gif)]() 
+[![Video of Employee Tracker](assets/demo.gif)](https://drive.google.com/file/d/1eZIzP7ExoINQ14SYhIlT0QgI0non5CJ0/view?usp=sharing) 
 
 
 ## Credits
