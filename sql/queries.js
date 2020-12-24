@@ -1,7 +1,7 @@
 // Class with queries as properties
-
 class Queries {
     constructor(){
+        
         this.getAllEmployees = `
         SELECT e.id, e.first_name, e.last_name, role.title, role.salary, department.name as department, CONCAT(m.first_name," ", m.last_name) as manager
         FROM employee e
